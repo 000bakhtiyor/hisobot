@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth Pages</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        .auth-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 400px;
+        }
+        .auth-header {
+            background: #2c3e50;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .auth-form {
+            padding: 30px;
+        }
+        .social-login .btn {
+            width: 100%;
+            margin: 5px 0;
+        }
+        .auth-switch {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .form-control:focus {
+            box-shadow: none;
+            border-color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Login Page -->
+<!-- Login Page -->
+<div class="container" id="loginPage">
+    <div class="auth-card mx-auto">
+        <div class="auth-header">
+            <h3><i class="fas fa-sign-in-alt"></i>Xush kelibsiz</h3>
+        </div>
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form class="auth-form" id="loginForm" method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            <!-- Render form fields -->
+            <div class="mb-3">
+                <label for="{{ form.username.id_for_label }}" class="form-label">Login</label>
+                {{ form.username }}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.password.id_for_label }}" class="form-label">Parol</label>
+                {{ form.password }}
+            </div>
+
+            <!-- Remember Me Checkbox -->
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="rememberMe">
+                <label class="form-check-label" for="rememberMe">Qurilmani eslab qolish</label>
+            </div>
+
+            <!-- Submit button -->
+            <button type="submit" class="btn btn-primary w-100">Kirish</button>
+
+            <div class="social-login mt-4">
+                <button type="button" class="btn btn-outline-danger">
+                    <i class="fab fa-google me-2"></i>Google bilan kirish
+                </button>
+                <button type="button" class="btn btn-outline-primary mt-2">
+                    <i class="fab fa-telegram me-2"></i>Telegram bilan kirish
+                </button>
+            </div>
+
+            <div class="auth-switch">
+                <p class="mt-3">Sizning shaxsiy kabinetingiz yo'qmi? 
+                    <a href="#" class="text-decoration-none" onclick="showRegister()">Ro'yxatdan o'ting</a>
+                </p>
+                <a href="#" class="text-decoration-none">Parolni unutdingizmi?</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- Register Page -->
+<div class="container d-none" id="registerPage">
+    <div class="auth-card mx-auto">
+        <div class="auth-header">
+            <h3><i class="fas fa-user-plus"></i> Create Account</h3>
+        </div>
+        <form class="auth-form" id="registerForm" method="POST">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="registerUsername" class="form-label">Username</label>
+                <input type="text" class="form-control" id="registerUsername" required>
+                <div class="invalid-feedback">Please choose a username</div>
+            </div>
+            <div class="mb-3">
+                <label for="registerEmail" class="form-label">Email address</label>
+                <input type="email" class="form-control" id="registerEmail" required>
+                <div class="invalid-feedback">Please enter a valid email</div>
+            </div>
+            <div class="mb-3">
+                <label for="registerPassword" class="form-label">Password</label>
+                <input type="password" class="form-control" id="registerPassword" required>
+                <div class="invalid-feedback">Please enter a password</div>
+            </div>
+            <div class="mb-3">
+                <label for="confirmPassword" class="form-label">Confirm Password</label>
+                <input type="password" class="form-control" id="confirmPassword" required>
+                <div class="invalid-feedback">Passwords must match</div>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Create Account</button>
+
+            <div class="auth-switch">
+                <p class="mt-3">Already have an account? 
+                    <a href="#" class="text-decoration-none" onclick="showLogin()">Sign in here</a>
+                </p>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Initial page load
+    document.addEventListener('DOMContentLoaded', () => {
+        showLogin();
+    });
+
+    function showLogin() {
+        document.getElementById('registerPage').classList.add('d-none');
+        document.getElementById('loginPage').classList.remove('d-none');
+    }
+
+    function showRegister() {
+        document.getElementById('loginPage').classList.add('d-none');
+        document.getElementById('registerPage').classList.remove('d-none');
+    }
+
+</script>
+
+</body>
+</html>
+

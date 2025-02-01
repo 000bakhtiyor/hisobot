@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+
+{% block title %}Debt Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Qarzlarni boshqarish bo'limi</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item active">Qarzdorlar va Qarzlarni kuzatish</li>
+    </ol>
+    <!-- Search and Add Section -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="input-group w-50">
+                <input type="text" id="searchInput" class="form-control" placeholder="Qarzdorni qidirish...">
+                <button class="btn btn-outline-secondary" type="button" id="searchButton">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDebtorModal">
+                <i class="fas fa-user-plus me-2"></i>Yangi qarzdor qo'shish
+            </button>
+        </div>
+    </div>
+
+    <!-- Debtors Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-primary text-white mb-4">
+                <div class="card-body">
+                    <h5>Qarzdorlar</h5>
+                    <h2>{{ debtors|length }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-warning text-white mb-4">
+                <div class="card-body">
+                    <h5>Jami qarzlar</h5>
+                    <h2>{{total_debt_sum}} so'm</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-danger text-white mb-4">
+                <div class="card-body">
+                    <h5>Muddati o'tgan qarzdorlar</h5>
+                    <h2>{{old_debtors}}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <h5>Yangi qarzlar</h5>
+                    <h2>{{new_debt_sum}} so'm</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+     <!-- Add Debit Section -->
+     <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-plus-circle me-1"></i>
+            Yangi qarz qo'shish
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_debt">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Qarzdor</label>
+                        <select class="form-select" name="debtor" required>
+                            <option value="">Qarzdorni tanlang</option>
+                            {% for debtor in debtors %}
+                            <option  value="{{ debtor.id }}">{{ debtor.full_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Qiymati</label>
+                        <input type="number" class="form-control" step="100" name="amount" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Sana</label>
+                        <input type="date" class="form-control" name="date" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Izoh uchun</label>
+                    <textarea class="form-control" rows="3" name="note"></textarea>
+                </div>
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save me-2"></i>Qarzni yozish
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Debtors Table -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-table me-1"></i>Qarzdorlar ro'yxati</h5>
+            <select class="form-select w-25" id="statusFilter">
+                <option value="">Hammasi</option>
+                <option value="Active">Yangi</option>
+                <option value="Overdue">Muddati o'tgan</option>
+                <option value="Settled">Depozit</option>
+            </select>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>F.I.O</th>
+                        <th>Aloqa ma'lumotlari</th>
+                        <th>Umumiy Qarzi</th>
+                        <th>Qarz olingan sana</th>
+                        <th>Holati</th>
+                        <th>Harakatlar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Sample Data - Replace with actual data from your backend -->
+                    {% for debtor in debtors %}
+                    <tr>
+                        <td>{{ debtor.full_name }}</td>
+                        <td>{{ debtor.social_link }}<br>{{ debtor.phone_number }}</td>
+                        <td>
+                            {% if debtor.total_debt %}
+                                {{ debtor.total_debt }} so'm
+                            {% else %}
+                                0 so'm
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if debtor.oldest_debt_date %}
+                                {{ debtor.oldest_debt_date }}
+                            {% else %}
+                                Qarz yo'q
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if debtor.debt_status == "new" %}
+                                <span class="badge bg-warning">yangi</span>
+                            {% elif debtor.debt_status == "old" %}
+                                <span class="badge bg-danger">Muddati o'tgan</span>
+                            {% else %}
+                                <span class="badge bg-success">Qarz yo'q</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-primary"><i class="fas fa-eye"></i></button>
+                            <button class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    <!-- Add more rows as needed -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Debtor Modal -->
+<div class="modal fade" id="addDebtorModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Yangi qarzdor qo'shish</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post">
+                    <input type="hidden" name="action" value="add_debtor">
+                    <div class="mb-3">
+                        <label class="form-label">Ism va familiyasi</label>
+                        <input type="text" class="form-control" name="full_name">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ijtimoiy tarmoqdagi manzili</label>
+                        <input type="text" class="form-control" name="social_link">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Telefon nomeri</label>
+                        <input type="tel" class="form-control" name="phone">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Manzili</label>
+                        <textarea class="form-control" rows="3" name="address"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Qarzdorni saqlash</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Add any additional scripts here -->
+<script>
+// You can add JavaScript functionality for:
+// - Form validation
+// - Dynamic data loading
+// - Interactive charts
+// - Table sorting/filtering
+</script>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+  <!-- Tools Section -->
+  <div class="row g-4 mb-4">
+    <div class="col-12 col-md-6 col-xl-4">
+        <div class="card card-tool p-3">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-list me-2"></i>Ro'yxat yaratish</h5>
+                <p>Yangi ro'yxatlar yaratish va ma'lumotlarni to'plash uchun bu asbobdan foydalaning.</p>
+                <button class="btn btn-info">Ishlatish</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-4">
+        <div class="card card-tool p-3">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-file-excel me-2"></i>Excelda ishlash</h5>
+                <p>Excel fayllari bilan, tahrirlash va ma'lumotlar bilan ishlash uchun bu asbobni ishlating.</p>
+                <a href="{% url 'excel' %}" class="btn btn-info">Ishlatish</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-4">
+        <div class="card card-tool p-3" style="background-color: #f8d7da; color: #721c24;">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-money-check-alt me-2"></i>Qarzdorlik
+                </h5>
+                <p>Qarzdorligi mavjud bo'lgan xaridorlar va qarzlar bilan ishlash bo'limi.</p>
+                <a href="{% url 'debit' %}" class="btn btn-danger">Ishlatish</a>
+            </div>
+        </div>
+    </div>
+    
+    
+</div>
+
+</div>
+{% endblock %}
