@@ -3,6 +3,28 @@
 {% block title %}Debt Management{% endblock %}
 
 {% block content %}
+<style>
+    #searchResults {
+        z-index: 1000;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .list-group-item {
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+        transform: translateX(5px);
+    }
+    
+    .highlight-match {
+        font-weight: bold;
+        color: #0d6efd;
+    }
+</style>
 <div class="container-fluid px-4">
     <h1 class="mt-4">Qarzlarni boshqarish bo'limi</h1>
     <ol class="breadcrumb mb-4">
@@ -11,11 +33,29 @@
     <!-- Search and Add Section -->
     <div class="card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <div class="input-group w-50">
-                <input type="text" id="searchInput" class="form-control" placeholder="Qarzdorni qidirish...">
-                <button class="btn btn-outline-secondary" type="button" id="searchButton">
-                    <i class="fas fa-search"></i>
-                </button>
+            <div class="position-relative w-50" id="searchContainer">
+                <div class="input-group">
+                    <input type="text" 
+                           id="searchInput" 
+                           class="form-control" 
+                           placeholder="Qarzdorni qidirish..."
+                           autocomplete="off"
+                           aria-label="Search debtors">
+                    <button class="btn btn-outline-primary" type="button" id="searchButton">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                
+                <!-- Search Results Popup -->
+                <div class="position-absolute w-100 d-none mt-1" id="searchResults">
+                    <div class="card shadow-lg border-0">
+                        <div class="card-body p-2">
+                            <div class="list-group list-group-flush">
+                                <!-- Search results will be dynamically inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDebtorModal">
                 <i class="fas fa-user-plus me-2"></i>Yangi qarzdor qo'shish
@@ -105,9 +145,9 @@
             <h5 class="mb-0"><i class="fas fa-table me-1"></i>Qarzdorlar ro'yxati</h5>
             <select class="form-select w-25" id="statusFilter">
                 <option value="">Hammasi</option>
-                <option value="Active">Yangi</option>
-                <option value="Overdue">Muddati o'tgan</option>
-                <option value="Settled">Depozit</option>
+                <option value="new">Yangi</option>
+                <option value="old">Muddati o'tgan</option>
+                <option value="settled">Depozit</option>
             </select>
         </div>
         <div class="card-body">
@@ -123,9 +163,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Sample Data - Replace with actual data from your backend -->
                     {% for debtor in debtors %}
-                    <tr>
+                    <tr data-status="{{ debtor.debt_status }}">
                         <td>{{ debtor.full_name }}</td>
                         <td>{{ debtor.social_link }}<br>{{ debtor.phone_number }}</td>
                         <td>
@@ -152,13 +191,21 @@
                             {% endif %}
                         </td>
                         <td>
-                            <button class="btn btn-sm btn-primary"><i class="fas fa-eye"></i></button>
-                            <button class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></button>
-                            <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                            <a href="{% url 'view_debts_that_debtor' debtor.id %}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'edit_debtor' debtor.id %}" class="btn btn-sm btn-warning">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form method="POST" action="{% url 'delete_debtor' debtor.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
                         </td>
                     </tr>
                     {% endfor %}
-                    <!-- Add more rows as needed -->
                 </tbody>
             </table>
         </div>
@@ -198,15 +245,111 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const statusFilter = document.getElementById('statusFilter');
+        
+        statusFilter.addEventListener('change', function() {
+            const selectedStatus = this.value;
+            const rows = document.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const rowStatus = row.getAttribute('data-status');
+                if (selectedStatus === '' || rowStatus === selectedStatus) {
+                    row.style.display = 'table-row';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    });
+</script>  
+<script>
+    const searchInput = document.getElementById('searchInput');
+    const searchResults = document.getElementById('searchResults');
+    const resultsList = searchResults.querySelector('.list-group');
+    const searchButton = document.getElementById('searchButton');
+    const viewDebtsBaseUrl = "{% url 'view_debts_that_debtor' 0 %}"
+    // Debounce function to limit API calls
+    const debounce = (func, delay = 300) => {
+        let timeoutId;
+        return (...args) => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => func.apply(null, args), delay);
+        };
+    };
+    
+    // Fetch search results from the server
+    const fetchResults = async (query) => {
+        if (!query) {
+            searchResults.classList.add('d-none');
+            return;
+        }
+    
+        try {
+            const response = await fetch(`/report/tools/search?q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+            
+            // Clear previous results
+            resultsList.innerHTML = '';
+            
+            if (data.length > 0) {
+                data.forEach(user => {
+                    const listItem = document.createElement('a');
+                    listItem.className = 'list-group-item list-group-item-action';
+                    listItem.href = viewDebtsBaseUrl + user.id;
+                    listItem.innerHTML = highlightMatches(user.full_name, query);
+                    listItem.onclick = () => selectUser(user);
+                    resultsList.appendChild(listItem);
+                });
+                searchResults.classList.remove('d-none');
+            } else {
+                resultsList.innerHTML = '<div class="list-group-item">Bu nomdagi qarzdor topilmadi.</div>';
+                searchResults.classList.remove('d-none');
+            }
+        } catch (error) {
+            resultsList.innerHTML = `<div class="list-group-item text-danger">Xatolik sodir bo'ldi: ${error}</div>`;
+            searchResults.classList.remove('d-none');
+        }
+    };
+    
+    // Highlight matched portions of the text
+    function highlightMatches(text, query) {
+        const regex = new RegExp(`(${query})`, 'gi');
+        return text.replace(regex, '<span class="highlight-match">$1</span>');
+    }
+    
+    // Handle debtor selection from the popup
+    function selectUser(user) {
+        // For demonstration, we just fill the search input.
+        // You can also redirect or perform other actions.
+        searchInput.value = user.name;
+        searchResults.classList.add('d-none');
+    }
+    
+    // Listen for clicks on the search button
+    searchButton.addEventListener('click', () => {
+        const query = searchInput.value.trim();
+        fetchResults(query);
+    });
+    
+    // Listen for input events (with debounce)
+    searchInput.addEventListener('input', debounce((e) => {
+        fetchResults(e.target.value.trim());
+    }, 300));
+    
+    // Optionally, hide search results when clicking outside the container
+    document.addEventListener('click', (e) => {
+        if (!document.getElementById('searchContainer').contains(e.target)) {
+            searchResults.classList.add('d-none');
+        }
+    });
+
+    </script>
 {% endblock %}
 
 {% block scripts %}
 <!-- Add any additional scripts here -->
-<script>
-// You can add JavaScript functionality for:
-// - Form validation
-// - Dynamic data loading
-// - Interactive charts
-// - Table sorting/filtering
-</script>
+
 {% endblock %}

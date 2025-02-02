@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <!-- Card Header -->
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0"><span class="text-warning">{{ debtor.full_name }}</span>ning qarzlari</h2>
+        </div>
+        <!-- Card Body -->
+        <div class="card-body">
+            {% if debts %}
+                <div class="table-responsive">
+                    <p class="fs-5"><strong>Jami qarzi:</strong> {{ total_debt|floatformat:2 }} SO'M</p>
+                    <table class="table table-striped table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th scope="col">Qiymati</th>
+                                <th scope="col">Izoh</th>
+                                <th scope="col">Olingan Sana</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for debt in debts %}
+                            <tr>
+                                {% if debt.amount < 0 %}
+                                    <td class="text-success">{{ debt.amount|floatformat:2 }} SO'M</td>
+                                {% else %}
+                                    <td>{{ debt.amount|floatformat:2 }} SO'M</td>
+                                {% endif %}
+                                <td>{{ debt.note }}</td>
+                                <td>{{ debt.date|date:"M d, Y" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info" role="alert">
+                    Qarzlar mavjud emas.
+                </div>
+            {% endif %}
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'debit' %}" class="btn btn-primary">Orqaga</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
