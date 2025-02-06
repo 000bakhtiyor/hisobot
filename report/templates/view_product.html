@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <!-- Card Header -->
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0"><span class="text-warning">{{ product.name }}</span> haqida</h2>
+        </div>
+        <!-- Card Body -->
+        <div class="card-body">
+            {% if product.image_url %}
+            <img src="{{ product.image_url }}" class="img-fluid mb-3" alt="{{ product.name }}">
+            {% endif %}
+            <p class="lead">{{ product.description }}</p>
+            <p>
+                <small class="text-muted">
+                    Qo'shilgan sana: {{ product.date|date:"d M Y" }}
+                </small>
+            </p>
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{% url 'products' %}" class="btn btn-primary">Orqaga</a>
+                <!-- Button trigger modal -->
+                <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#productModal">
+                    Batafsil ma'lumot
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="productModalLabel">{{ product.name }} haqida qo'shimcha ma'lumot</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Yopish"></button>
+      </div>
+      <div class="modal-body">
+        <h4>Mahsulot Tafsilotlari</h4>
+        <p>{{ product.description }}</p>
+        {% if product.image_url %}
+        <img src="{{ product.image_url }}" class="img-fluid my-3" alt="{{ product.name }}">
+        {% endif %}
+        <p>
+            <strong>Qo'shilgan sana:</strong> {{ product.date|date:"d M Y" }}
+        </p>
+        <p>
+            <strong>Sotuvchi:</strong> {{ product.user.username }}
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Yopish</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

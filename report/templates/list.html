@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Omborda Mavjud Bo'lmagan Mahsulotlar</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item active">Omborda yo'q mahsulotlarni ro'yxati</li>
+    </ol>
+
+    <!-- Control Section -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMissingProductModal">
+                <i class="fas fa-plus-circle me-2"></i>Yangi mahsulot qo'shish
+            </button>
+            <div class="d-flex gap-2">
+                <button class="btn btn-success" onclick="printSection('missing-products-list')">
+                    <i class="fas fa-print me-2"></i>Chop etish
+                </button>
+                <button class="btn btn-danger">
+                    <i class="fas fa-file-excel me-2"></i>Excelga yuklash
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-primary text-white mb-4">
+                <div class="card-body">
+                    <h5>Jami mahsulotlar</h5>
+                    <h2>{{ product_count }} ta</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-warning text-white mb-4">
+                <div class="card-body">
+                    <h5>Kutilayotgan</h5>
+                    <h2>{{ product_count_that_wait }} ta</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-danger text-white mb-4">
+                <div class="card-body">
+                    <h5>Bekor qilingan</h5>
+                    <h2>{{ product_count_that_reject }} ta</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <h5>Olib kelingan</h5>
+                    <h2>{{ product_count_that_approve }} ta</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Missing Products Table -->
+    <div class="card mb-4" id="missing-products-list">
+        <div class="card-header">
+            <i class="fas fa-boxes me-1"></i>
+            Ro'yxat
+        </div>
+        <div class="card-body">
+            <table class="table table-hover table-striped">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Mahsulot Nomi</th>
+                        <th>Miqdori</th>
+                        <th>Kategoriya</th>
+                        <th>Holati</th>
+                        <th>Qo'shilgan Sana</th>
+                        <th>Harakatlar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in product_requests %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ request.product.name }}</td>
+                        <td>{{ request.required_quantity }} {{ request.measurement_unit }}</td>
+                        <td>{{ request.get_category_display }}</td>
+                        <td>
+                            {% if request.status == 'kutilyapti' %}
+                                <span class="badge bg-warning">Kutilyapti</span>
+                            {% elif request.status == 'qabul_qilingan' %}
+                                <span class="badge bg-success">Qabul qilindi</span>
+                            {% elif request.status == 'bekor_qilingan' %}
+                                <span class="badge bg-danger">Bekor qilindi</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ request.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ request.created_at|date:"Y-m-d" }}</td>
+                        <td>
+                                <button class="btn btn-sm btn-success" title="Tasdiqlash"
+                                        onclick="location.href=`{% url 'approve_request' request.id %}`">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" title="Rad etish"
+                                        onclick="location.href=`{% url 'reject_request' request.id %}`">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            
+                                <button class="btn btn-sm btn-warning" title="O'chirish"
+                                        onclick="location.href=`{% url 'delete_request' request.id %}`">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center">Hech qanday mahsulot topilmadi</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+
+    <!-- Add Missing Product Modal -->
+    <div class="modal fade" id="addMissingProductModal" tabindex="-1" aria-labelledby="addMissingProductModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="addMissingProductModalLabel">Yangi mahsulot qo'shish</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <!-- <form method="POST">
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Mahsulot Nomi</label>
+                                <input type="text" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Kategoriya</label>
+                                <select class="form-select" required>
+                                    <option value="">Tanlang...</option>
+                                    <option>Sabzavot</option>
+                                    <option>Meva</option>
+                                    <option>Go'sht mahsulotlari</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Kerakli Miqdor</label>
+                                <input type="number" class="form-control" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Oʻlchov Birligi</label>
+                                <select class="form-select" required>
+                                    <option>kg</option>
+                                    <option>dona</option>
+                                    <option>litr</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Holati</label>
+                                <select class="form-select" required>
+                                    <option>Kutilyapti</option>
+                                    <option>Qabul qilindi</option>
+                                    <option>Bekor qilindi</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Qo'shimcha Izoh</label>
+                                <textarea class="form-control" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                        <button type="submit" class="btn btn-primary">Saqlash</button>
+                    </div>
+                </form> -->
+                <form method="POST">
+                    {% csrf_token %}
+                    <input class="form-control" name="action" value="add_product" hidden="True">
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <!-- Mahsulot Nomi -->
+                            <div class="col-md-6">
+                                <label class="form-label" for="{{ form.product.id_for_label }}">Mahsulot Nomi</label>
+                                {{ form.product }}
+                            </div>
+                            <!-- Kategoriya -->
+                            <div class="col-md-6">
+                                <label class="form-label" for="{{ form.category.id_for_label }}">Kategoriya</label>
+                                {{ form.category }}
+                            </div>
+                            <!-- Kerakli Miqdor -->
+                            <div class="col-md-4">
+                                <label class="form-label" for="{{ form.required_quantity.id_for_label }}">Kerakli Miqdor</label>
+                                {{ form.required_quantity }}
+                            </div>
+                            <!-- O'lchov Birligi -->
+                            <div class="col-md-4">
+                                <label class="form-label" for="{{ form.measurement_unit.id_for_label }}">Oʻlchov Birligi</label>
+                                {{ form.measurement_unit }}
+                            </div>
+                            <!-- Holati -->
+                            <div class="col-md-4">
+                                <label class="form-label" for="{{ form.status.id_for_label }}">Holati</label>
+                                {{ form.status }}
+                            </div>
+                            <!-- Qo'shimcha Izoh -->
+                            <div class="col-12">
+                                <label class="form-label" for="{{ form.note.id_for_label }}">Qo'shimcha Izoh</label>
+                                {{ form.note }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                        <button type="submit" class="btn btn-primary">Saqlash</button>
+                    </div>
+                </form>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .badge {
+        font-size: 0.9em;
+        padding: 0.5em 0.75em;
+    }
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+        cursor: pointer;
+    }
+</style>
+
+<script>
+function printSection(sectionId) {
+    const printContent = document.getElementById(sectionId).innerHTML;
+    const originalContent = document.body.innerHTML;
+    
+    document.body.innerHTML = printContent;
+    window.print();
+    document.body.innerHTML = originalContent;
+}
+</script>
+{% endblock %}

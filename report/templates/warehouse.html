@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Ombor Boshqaruvi</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item active">Mahsulotlar inventarizatsiyasi va boshqaruv paneli</li>
+    </ol>
+
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-primary text-white mb-4">
+                <div class="card-body">
+                    <h5>Jami Mahsulotlar</h5>
+                    <h2>{{ all_stock }} ta</h2>
+                    <div class="small">Oxirgi kun ichida +{{ new_items_count }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <h5>Umumiy yig'indi</h5>
+                    <h2>{{ total_value }} SO'M</h2>
+                    <div class="small">Olinadigan foyda +{{profit|floatformat:2}}%</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-warning text-white mb-4">
+                <div class="card-body">
+                    <h5>Kam Qolganlar</h5>
+                    <h2>0 ta</h2>
+                    <div class="small">0ta tugagan</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-danger text-white mb-4">
+                <div class="card-body">
+                    <h5>Muddati O'tgan</h5>
+                    <h2>{{expired_stocks_count}} ta</h2>
+                    <div class="small">{{ expired_stocks_soon_count }}ta muddati yaqin qolganlar</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Inventory List -->
+        <div class="col-xl-9">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas fa-box-open me-1"></i>
+                        Mahsulotlar Ro'yxati
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                            <i class="fas fa-plus"></i> Yangi mahsulot qo'shish
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Mahsulot</th>
+                                    <th>Kategoriya</th>
+                                    <th>Miqdor</th>
+                                    <th>Olingan narxi</th>
+                                    <th>Narxi</th>
+                                    <th>Holati</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stock in stocks %}
+                                <tr>
+                                    <td>{{ stock.id }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="{{ stock.product.image_url }}" class="rounded me-2" width="40" height="40">
+                                            {{ stock.product.name }}
+                                        </div>
+                                    </td>
+                                    <td>{{ stock.category }}</td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ stock.quantity }} {{ stock.unit }}</span>
+                                    </td>
+                                    <td>{{ stock.purchase_price }} SO'M</td>
+                                    <td>{{ stock.selling_price }} SO'M</td>
+                                    <td>
+                                        {% if stock.expiry_date < today %}
+                                            <span class="badge bg-danger">Yaroqlilik muddati tugagan</span>
+                                        {% else %}
+                                            <span class="badge bg-success">Yaxshi</span>
+                                        {% endif %}
+                                    </td>                                    
+                                    <td>
+                                        <a href="{% url 'edit_stock' stock.id %}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form method="POST" action="{% url 'delete_stock' stock.id %}" style="display: inline;">
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                <!-- More rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Warehouse Analytics -->
+        <div class="col-xl-3">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    Favqulodda Holatlar
+                </div>
+                <div class="card-body alert-list">
+                    <!-- <div class="alert alert-danger d-flex align-items-center mb-2">
+                        <i class="fas fa-fire me-2"></i>
+                        <div>
+                            <strong>(TEST) Kartoshka</strong> - Kritik darajada kam (5 kg qoldi)
+                        </div>
+                    </div> -->
+                    {% for stock in expired_stocks_soon %}
+                    <div class="alert alert-warning d-flex align-items-center mb-2">
+                        <i class="fas fa-clock me-2"></i>
+                        <div>
+                            <strong>{{ stock.product.name }}</strong> - Oxirgi muddati {{ stock.days_left }} kun
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-pie me-1"></i>
+                    Mahsulotlar Taqsimoti
+                </div>
+                <div class="card-body">
+                    <canvas id="inventoryChart" width="100%" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Product Modal -->
+    <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Yangi Mahsulot Qo'shish</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <!-- <form>
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Mahsulot Nomi</label>
+                                <input type="text" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Kategoriya</label>
+                                <select class="form-select" required>
+                                    <option>Sabzavot</option>
+                                    <option>Meva</option>
+                                    <option>Sut Mahsulotlari</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Boshlang'ich Miqdor</label>
+                                <input type="number" class="form-control" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Oʻlchov Birligi</label>
+                                <select class="form-select" required>
+                                    <option>kg</option>
+                                    <option>dona</option>
+                                    <option>litr</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Kelgan Sana</label>
+                                <input type="date" class="form-control" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Olingan Narxi (so'mda)</label>
+                                <input type="number" class="form-control" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Narxi (so'mda)</label>
+                                <input type="number" class="form-control" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Saqlash Muddat</label>
+                                <input type="date" class="form-control" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Qo'shimcha Ma'lumot</label>
+                                <textarea class="form-control" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                        <button type="submit" class="btn btn-primary">Saqlash</button>
+                    </div>
+                </form> -->
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Mahsulot Nomi</label>
+                                {{ form.product }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Kategoriya</label>
+                                {{ form.category }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Boshlang'ich Miqdor</label>
+                                {{ form.quantity }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Oʻlchov Birligi</label>
+                                {{ form.unit }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Kelgan Sana</label>
+                                {{ form.arrival_date }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Olingan Narxi (so'mda)</label>
+                                {{ form.purchase_price }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Narxi (so'mda)</label>
+                                {{ form.selling_price }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Saqlash Muddat</label>
+                                {{ form.expiry_date }}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Qo'shimcha Ma'lumot</label>
+                                {{ form.additional_info }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                        <button type="submit" class="btn btn-primary">Saqlash</button>
+                    </div>
+                </form>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+        cursor: pointer;
+    }
+    .alert-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    .w-150 {
+        width: 150px;
+    }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Inventory Chart
+const ctx = document.getElementById('inventoryChart').getContext('2d');
+new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+        labels: {{ categories|safe }},
+        datasets: [{
+            data: {{category_counts|safe}},
+            backgroundColor: [
+                '#4e73df',
+                '#1cc88a',
+                '#36b9cc',
+                '#f6c23e',
+                '#e74a3b'
+            ],
+            hoverBorderColor: "rgba(234, 236, 244, 1)",
+        }],
+    },
+    options: {
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

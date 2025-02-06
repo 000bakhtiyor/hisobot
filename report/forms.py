@@ -1,5 +1,22 @@
 from django import forms
-from .models import Debtor
+from .models import *
+
+from django import forms
+from .models import Warehouse
+
+class WarehouseForm(forms.ModelForm):
+    class Meta:
+        model = Warehouse
+        fields = '__all__'
+        widgets = {
+            'product': forms.Select(attrs={'class': 'form-select'}),
+            'category': forms.Select(attrs={'class': 'form-select'}),
+            'unit': forms.Select(attrs={'class': 'form-select'}),
+            'arrival_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'expiry_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'additional_info': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+
 
 class DebtorForm(forms.ModelForm):
     class Meta:
@@ -10,6 +27,30 @@ class DebtorForm(forms.ModelForm):
             'social_link': forms.TextInput(attrs={'class': 'form-control'}),
             'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
             'address': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+class ProductForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = '__all__'
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control'}),
+            'image_url': forms.TextInput(attrs={'class': 'form-control'}),
+            'user': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+class ProductRequestForm(forms.ModelForm):
+    class Meta:
+        model = ProductRequest
+        fields = '__all__'
+        widgets = {
+            'product': forms.Select(attrs={'class': 'form-control'}),
+            'category': forms.Select(attrs={'class': 'form-control'}),
+            'required_quantity': forms.NumberInput(attrs={'class': 'form-control'}),
+            'measurement_unit': forms.Select(attrs={'class': 'form-control'}),
+            'status': forms.Select(attrs={'class': 'form-control'}),
+            'note': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
 class UserLoginForm(forms.Form):
