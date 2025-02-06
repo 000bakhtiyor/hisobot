@@ -103,7 +103,16 @@ def login_view(request):
 @login_required
 def home(request):
 
-    return render(request, 'home.html')
+    categories = [choice[0] for choice in Warehouse.CATEGORY_CHOICES]
+    warehouse = Warehouse.objects.all()
+
+    context = {
+        'categories': categories,
+        'stocks': warehouse,
+    }
+
+
+    return render(request, 'home.html', context)
 
 @login_required
 def tools(request):

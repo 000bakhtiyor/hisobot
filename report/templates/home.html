@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Savo qilish</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
     :root {
       --primary: #2c3e50;
@@ -194,18 +195,19 @@
     <h1>Savdo qilish bo'limi</h1>
     <div>
       <input type="text" class="search-bar" placeholder="Mahsulotni qidirish...">
-      <span class="current-user">👤 Qo'shimcha sahifalarga o'tish</span>
+      <a href="{% url 'tools' %}" style="color: white;text-decoration: none;">
+        <i class="fas fa-tools"></i><span class="current-user"> Qo'shimcha sahifalarga o'tish</span>
+      </a>
     </div>
   </header>
 
   <div class="pos-container">
     <main>
       <div class="category-filter">
-        <button class="category-btn active">All</button>
-        <button class="category-btn">Electronics</button>
-        <button class="category-btn">Groceries</button>
-        <button class="category-btn">Clothing</button>
-        <button class="category-btn">Home & Garden</button>
+        <button class="category-btn active">Hammasi</button>
+        {% for category in categories %}
+            <button class="category-btn">{{category}}</button>
+        {% endfor %}
       </div>
       <div class="product-grid">
         <!-- Product Cards will be rendered here -->
@@ -245,16 +247,20 @@
   <script>
     // Sample product data with images
     const products = [
-      { id: 1, name: 'Wireless Mouse', price: 29.99, category: 'Electronics', stock: 15, image: 'https://via.placeholder.com/240x150?text=Mouse' },
-      { id: 2, name: 'Organic Apples', price: 4.99, category: 'Groceries', stock: 42, image: 'https://via.placeholder.com/240x150?text=Apples' },
-      { id: 3, name: "Men's T-Shirt", price: 19.99, category: 'Clothing', stock: 27, image: 'https://via.placeholder.com/240x150?text=T-Shirt' },
-      { id: 4, name: 'Bluetooth Headphones', price: 59.99, category: 'Electronics', stock: 10, image: 'https://via.placeholder.com/240x150?text=Headphones' },
-      { id: 5, name: 'Garden Shovel', price: 15.99, category: 'Home & Garden', stock: 8, image: 'https://via.placeholder.com/240x150?text=Shovel' },
-      { id: 6, name: 'Fresh Milk', price: 2.99, category: 'Groceries', stock: 30, image: 'https://via.placeholder.com/240x150?text=Milk' }
+        {% for stock in stocks %}
+            {
+                id: {{ stock.id }},
+                name: "{{ stock.product.name }}",
+                price: {{ stock.selling_price }},
+                category: "{{ stock.category }}",
+                stock: {{ stock.quantity }},
+                image: "{{ stock.product.image_url }}"
+            }{% if not forloop.last %},{% endif %}
+        {% endfor %}
     ];
 
     let cart = [];
-    let currentCategory = 'All';
+    let currentCategory = 'Hammasi';
     let searchQuery = '';
 
     // Render product grid based on filtered products
@@ -269,7 +275,7 @@
             <img src="${product.image}" alt="${product.name}">
           </div>
           <h3>${product.name}</h3>
-          <p>$${product.price.toFixed(2)}</p>
+          <p>${product.price.toFixed(2)} SO'M</p>
         `;
         // When the card is clicked, add the product to the cart
         card.addEventListener('click', () => addToCart(product.id));
@@ -280,7 +286,7 @@
     // Update product display based on category and search
     function updateProductDisplay() {
       const filtered = products.filter(product => {
-        const matchCategory = (currentCategory === 'All' || product.category === currentCategory);
+        const matchCategory = (currentCategory === 'Hammasi' || product.category === currentCategory);
         const matchSearch = product.name.toLowerCase().includes(searchQuery);
         return matchCategory && matchSearch;
       });
@@ -338,10 +344,10 @@
               <button onclick="adjustQuantity(${item.id}, -1)">-</button>
               <span>${item.quantity}</span>
               <button onclick="adjustQuantity(${item.id}, 1)">+</button>
-              <button class="remove-btn" onclick="removeFromCart(${item.id})">Remove</button>
+              <button class="remove-btn" onclick="removeFromCart(${item.id})">O'chirish</button>
             </div>
           </div>
-          <div>$${itemTotal.toFixed(2)}</div>
+          <div>${itemTotal.toFixed(2)} SO'M</div>
         `;
         cartItems.appendChild(div);
       });
