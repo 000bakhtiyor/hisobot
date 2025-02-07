@@ -29,7 +29,7 @@
       padding: 8px 15px;
       border-radius: 20px;
       border: none;
-      width: 300px;
+      width: 400px;
     }
 
     /* Main Container */
@@ -188,6 +188,71 @@
       }
       .search-bar { width: 200px; }
     }
+    .manual-add-product {
+      margin: 15px 0;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background: #f9f9f9;
+  }
+  .manual-add-product input,
+  .manual-add-product select {
+      width: calc(100% - 20px);
+      margin-bottom: 10px;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+  }
+  .bill-container {
+    width: 350px;
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.bill-header {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.bill-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 15px;
+}
+
+.bill-table th, .bill-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+.bill-table th {
+    background-color: #f8f9fa;
+}
+
+.bill-footer {
+    font-size: 18px;
+    margin-top: 10px;
+}
+
+.print-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.print-btn:hover {
+    background-color: #0056b3;
+}
+
   </style>
 </head>
 <body>
@@ -209,6 +274,13 @@
             <button class="category-btn">{{category}}</button>
         {% endfor %}
       </div>
+      <div class="manual-add-product">
+        <h3>Mahsulot qo'shish</h3>
+        <input type="text" id="product-name" placeholder="Mahsulot nomi">
+        <input type="number" id="product-price" placeholder="Narxi">
+        <input type="number" id="product-qunatity" placeholder="Miqdori">
+        <button class="btn btn-primary" onclick="addManualProduct()">Qo'shish</button>
+      </div>
       <div class="product-grid">
         <!-- Product Cards will be rendered here -->
       </div>
@@ -222,24 +294,26 @@
         <button class="btn btn-danger" onclick="clearCart()">Bekor Qilish</button>
         <button class="btn btn-success" onclick="openPaymentModal()">To'lov qilish</button>
       </div>
+      <div id="bill-container"></div>
     </aside>
   </div>
 
   <!-- Payment Modal -->
   <div class="payment-modal" id="paymentModal">
     <div class="payment-content">
-      <h2>Select Payment Method</h2>
+      <h2>To'lov qilish turini belgilang</h2>
+      <br>
       <div class="payment-methods">
-        <button class="btn btn-primary" onclick="selectPayment('cash')">Cash</button>
-        <button class="btn btn-primary" onclick="selectPayment('card')">Credit Card</button>
-        <button class="btn btn-primary" onclick="selectPayment('mobile')">Mobile Pay</button>
+        <button class="btn btn-primary" onclick="selectPayment('cash')">Naxt</button>
+        <button class="btn btn-primary" onclick="selectPayment('card')">Karta</button>
+        <button class="btn btn-primary" onclick="selectPayment('mobile')">Boshqa to'lovlar</button>
       </div>
       <div id="paymentDetails">
         <!-- Dynamic payment form details -->
       </div>
       <div style="margin-top: 15px; display: flex; justify-content: space-between;">
-        <button class="btn btn-success" onclick="completePayment()">Complete Transaction</button>
-        <button class="btn btn-danger" onclick="closePaymentModal()">Cancel</button>
+        <button class="btn btn-success" onclick="completePayment()">Tasdiqlash</button>
+        <button class="btn btn-danger" onclick="closePaymentModal()">Bekor qilish</button>
       </div>
     </div>
   </div>
@@ -315,6 +389,29 @@
       });
     }
 
+
+function addManualProduct() {
+    const name = document.getElementById('product-name').value.trim();
+    const price = parseFloat(document.getElementById('product-price').value);
+    const quantity = parseInt(document.getElementById('product-qunatity').value, 10);
+
+    if (!name || isNaN(price) || price <= 0 || isNaN(quantity) || quantity <= 0) {
+        alert("Barcha maydonlarni to'g'ri to'ldiring!");
+        return;
+    }
+
+    const productId = products.length + 1;
+    const newProduct = { id: productId, name, price, quantity };
+
+    products.push(newProduct);
+    addToCart(productId)
+
+    // Clear input fields
+    document.getElementById('product-name').value = "";
+    document.getElementById('product-price').value = "";
+    document.getElementById('product-qunatity').value = "";
+}
+
     // Cart functionality
     function addToCart(productId) {
       const product = products.find(p => p.id === productId);
@@ -384,24 +481,107 @@
     }
 
     function selectPayment(method) {
-      const details = document.getElementById('paymentDetails');
-      if (method === 'cash') {
-        details.innerHTML = '<p>Please enter the cash received.</p>';
-      } else if (method === 'card') {
-        details.innerHTML = '<p>Please swipe or insert your card.</p>';
-      } else if (method === 'mobile') {
-        details.innerHTML = '<p>Please scan the mobile payment QR code.</p>';
-      }
+    const details = document.getElementById('paymentDetails');
+
+    if (method === 'cash') {
+        details.innerHTML = '<p>Naxt tanlandi</p>';
+    } else if (method === 'card') {
+        details.innerHTML = '<p>Karta tanlandi</p>';
+    } else if (method === 'mobile') {
+        details.innerHTML = '<p>Boshqa to`lov turi tanlandi</p>';
     }
 
+    generateBill(method)
+}
+
+
     function completePayment() {
-      alert('Transaction completed successfully!');
+      alert('To`lov muvaffaqiyatli amalga oshirildi!');
       clearCart();
       closePaymentModal();
     }
 
+    function generateBill(method) {
+    if (cart.length === 0) {
+        alert("Savat bo'sh!");
+        return;
+    }
+
+    let billContent = `
+        <div class="bill-container">
+            <h2 class="bill-header">🧾 Chek</h2>
+            <table class="bill-table">
+                <thead>
+                    <tr>
+                        <th>Mahsulot</th>
+                        <th>Miqdor</th>
+                        <th>Narxi</th>
+                        <th>Jami</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    let total = 0;
+    cart.forEach(item => {
+        const itemTotal = item.price * item.quantity;
+        total += itemTotal;
+        billContent += `
+            <tr>
+                <td>${item.name}</td>
+                <td>${item.quantity}</td>
+                <td>${item.price.toFixed(2)} SO'M</td>
+                <td>${itemTotal.toFixed(2)} SO'M</td>
+            </tr>
+        `;
+    });
+
+    billContent += `
+                </tbody>
+            </table>
+            <div class="bill-footer">
+                <h3>Jami: ${total.toFixed(2)} SO'M</h3>
+                <p>To'lov turi: <strong>${method}</strong></p>
+                <button class="btn btn-primary print-btn" onclick="printBill()">🖨 Chop etish</button>
+            </div>
+        </div>
+    `;
+
+    document.getElementById("bill-container").innerHTML = billContent;
+
+    cart = [];
+    updateCartDisplay();
+}
+
+function printBill() {
+    const billContent = document.getElementById("bill-container").innerHTML;
+    const printWindow = window.open("", "", "width=600,height=600");
+    printWindow.document.write(`
+        <html>
+            <head>
+                <title>Chek</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
+                    .bill-header { font-size: 22px; margin-bottom: 10px; }
+                    .bill-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+                    .bill-table th, .bill-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                    .bill-table th { background-color: #f2f2f2; }
+                    .bill-footer { font-size: 18px; margin-top: 10px; }
+                </style>
+            </head>
+            <body>${billContent}</body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+}
+
+
+
     // Initialize the POS system
     init();
   </script>
+
+  
 </body>
 </html>

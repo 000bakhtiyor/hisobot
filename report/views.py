@@ -370,7 +370,7 @@ def custom_404(request, exception):
 
 @login_required
 def test(request):
-    return render(request, 'login.html')
+    return render(request, 'test.html')
 
 @login_required
 def auth_check(request):
