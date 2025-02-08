@@ -439,9 +439,10 @@ function addManualProduct() {
             <h4>${item.name}</h4>
             <div class="quantity-controls">
               <button onclick="adjustQuantity(${item.id}, -1)">-</button>
-              <span>${item.quantity}</span>
+              <input type="text" id="quantity-${item.id}" value="${item.quantity}" onchange="updateQuantity(${item.id})" style="width: 50px; padding: 8px; font-size: 16px; border: 2px solid #007bff; border-radius: 5px; outline: none;" />
+
               <button onclick="adjustQuantity(${item.id}, 1)">+</button>
-              <button class="remove-btn" onclick="removeFromCart(${item.id})">O'chirish</button>
+              <button class="remove-btn" onclick="removeFromCart(${item.id})"><i class="fas fa-trash"></i></button>
             </div>
           </div>
           <div>${itemTotal.toFixed(2)} SO'M</div>
@@ -451,6 +452,20 @@ function addManualProduct() {
       totalAmount.textContent = total.toFixed(2);
     }
 
+    function updateQuantity(itemId) {
+      const inputField = document.getElementById(`quantity-${itemId}`);
+      let newQuantity = parseFloat(inputField.value);
+      console.log(newQuantity)
+        if (!isNaN(newQuantity) && newQuantity > 0) {
+            const item = cart.find(i => i.id === itemId);
+            if (item) {
+                item.quantity = newQuantity;
+            }
+        } else {
+            inputField.value = 1;
+        }
+        updateCartDisplay();
+    }
     function adjustQuantity(productId, change) {
       const item = cart.find(item => item.id === productId);
       if (!item) return;
