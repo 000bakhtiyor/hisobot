@@ -286,10 +286,11 @@
       </div>
     </main>
     <aside class="cart-section">
-      <h2>Jami qiymat (<span id="total-amount">0.00</span> SO'M)</h2>
+      <h2>Xaridlar</h2>
       <div class="cart-items">
         <!-- Cart items will appear here -->
       </div>
+      <h3>Umumiy summa: <span id="total-amount">0.00</span> SO'M</h3>
       <div class="cart-actions">
         <button class="btn btn-danger" onclick="clearCart()">Bekor Qilish</button>
         <button class="btn btn-success" onclick="openPaymentModal()">To'lov qilish</button>
@@ -496,18 +497,18 @@ function addManualProduct() {
     }
 
     function selectPayment(method) {
-    const details = document.getElementById('paymentDetails');
+      const details = document.getElementById('paymentDetails');
 
-    if (method === 'cash') {
-        details.innerHTML = '<p>Naxt tanlandi</p>';
-    } else if (method === 'card') {
-        details.innerHTML = '<p>Karta tanlandi</p>';
-    } else if (method === 'mobile') {
-        details.innerHTML = '<p>Boshqa to`lov turi tanlandi</p>';
+      if (method === 'cash') {
+          details.innerHTML = '<p>Naxt tanlandi</p>';
+      } else if (method === 'card') {
+          details.innerHTML = '<p>Karta tanlandi</p>';
+      } else if (method === 'mobile') {
+          details.innerHTML = '<p>Boshqa to`lov turi tanlandi</p>';
+      }
+
+      generateBill(method);
     }
-
-    generateBill(method)
-}
 
 
     function completePayment() {
@@ -524,7 +525,8 @@ function addManualProduct() {
 
     let billContent = `
         <div class="bill-container">
-            <h2 class="bill-header">🧾 Chek</h2>
+            <h2 class="bill-header">Lagandi X/F</h2>
+            <h3>🧾 Chek</h3>
             <table class="bill-table">
                 <thead>
                     <tr>
@@ -555,8 +557,10 @@ function addManualProduct() {
                 </tbody>
             </table>
             <div class="bill-footer">
-                <h3>Jami: ${total.toFixed(2)} SO'M</h3>
+                <h3>Umumiy summa: ${total.toFixed(2)} SO'M</h3>
+                <hr>
                 <p>To'lov turi: <strong>${method}</strong></p>
+                <br>
                 <button class="btn btn-primary print-btn" onclick="printBill()">🖨 Chop etish</button>
             </div>
         </div>
