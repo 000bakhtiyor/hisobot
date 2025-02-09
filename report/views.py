@@ -13,6 +13,11 @@ from django.db.models import  F, ExpressionWrapper, DecimalField
  
 
 @login_required
+def profile(request):
+
+    return render(request, 'profile.html')
+
+@login_required
 def warehouse(request):
     if request.method == "POST":
         form = WarehouseForm(request.POST)

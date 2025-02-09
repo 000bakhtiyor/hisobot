@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-4">
+            <!-- Profile Card -->
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    {% if user.profile.profile_picture %}
+                        <img src="{{ user.profile.profile_picture.url }}" 
+                             class="rounded-circle mb-3" 
+                             alt="Profile picture" 
+                             style="width: 150px; height: 150px; object-fit: cover;">
+                    {% else %}
+                        <div class="bg-secondary rounded-circle d-inline-block mb-3"
+                             style="width: 150px; height: 150px; line-height: 150px; text-align: center;">
+                            <span class="text-light h4">{{ user.username|first|upper }}</span>
+                        </div>
+                    {% endif %}
+                    <h3 class="mb-0">{{ user.username }}</h3>
+                    {% if user.get_full_name %}
+                        <p class="text-muted">{{ user.get_full_name }}</p>
+                    {% endif %}
+                    <br>
+                    <div class="d-flex justify-content-center mb-2">
+                        <a href="{% url 'home' %}" class="btn btn-primary me-1">Profilni tahrirlash</a>
+                        <a href="{% url 'home' %}" class="btn btn-outline-primary">Parolni o'zgartirish</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <!-- Details Card -->
+            <div class="card shadow">
+                <div class="card-body">
+                    <h4 class="mb-4">Foydalanuvchi haqida</h4>
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <p class="mb-0">Username</p>
+                        </div>
+                        <div class="col-sm-9">
+                            <p class="text-muted mb-0">{{ user.username }}</p>
+                        </div>
+                    </div>
+                    <hr>
+
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <p class="mb-0">Email</p>
+                        </div>
+                        <div class="col-sm-9">
+                            <p class="text-muted mb-0">{{ user.email }}</p>
+                        </div>
+                    </div>
+                    <hr>
+
+                    {% if user.profile.bio %}
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <p class="mb-0">Haqida</p>
+                        </div>
+                        <div class="col-sm-9">
+                            <p class="text-muted mb-0">{{ user.profile.bio }}</p>
+                        </div>
+                    </div>
+                    <hr>
+                    {% endif %}
+
+                    {% if user.profile.location %}
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <p class="mb-0">Joylashuvi</p>
+                        </div>
+                        <div class="col-sm-9">
+                            <p class="text-muted mb-0">{{ user.profile.location }}</p>
+                        </div>
+                    </div>
+                    <hr>
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <p class="mb-0">A'zo bo'lgan sana</p>
+                        </div>
+                        <div class="col-sm-9">
+                            <p class="text-muted mb-0">{{ user.date_joined|date:"F d, Y" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
