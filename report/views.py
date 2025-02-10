@@ -259,6 +259,21 @@ def edit_debtor(request, debtor_id):
     return render(request, 'edit_debtor.html', {'form': form, 'debtor': debtor})
 
 @login_required
+def edit_profile(request):
+    profile = get_object_or_404(User)
+    
+    if request.method == "POST":
+        form = ProfileForm(request.POST, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect('profile')  
+    else:
+        form = ProfileForm(instance=profile)
+    
+    return render(request, 'edit_profile.html', {'form': form})
+
+
+@login_required
 def edit_product(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     

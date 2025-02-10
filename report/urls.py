@@ -7,6 +7,7 @@ urlpatterns = [
     path('test/', test, name='test'),
     path('auth_check/', auth_check, name='auth_check'),
     path('profile/', profile, name="profile"),
+    path('profile/edit/', edit_profile, name="edit_profile"),
 
     path('tools/excel/', excel, name='excel'),
     path('tools/debit/', debit, name='debit'),

@@ -29,6 +29,11 @@ class DebtorForm(forms.ModelForm):
             'address': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = '__all__'
+
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
